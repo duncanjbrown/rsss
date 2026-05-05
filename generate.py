@@ -5,8 +5,34 @@ import sys
 import os
 from datetime import datetime, timezone
 from email.utils import formatdate
+from html.parser import HTMLParser
 from zoneinfo import ZoneInfo
 from xml.sax.saxutils import escape
+
+
+class _TextExtractor(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self._parts = []
+
+    def handle_data(self, data):
+        self._parts.append(data)
+
+    def get_text(self):
+        return " ".join(self._parts)
+
+
+def _html_to_text(html):
+    p = _TextExtractor()
+    p.feed(html)
+    return p.get_text()
+
+
+def _first_words(text, n=100):
+    words = text.split()
+    if len(words) <= n:
+        return " ".join(words)
+    return " ".join(words[:n]) + "\u2026"
 
 
 def entry_date(entry):
@@ -84,6 +110,48 @@ def build_rss(title, description, link, entries):
     )
 
 
+def build_feed_page(title, description, entries, feed_xml_path):
+    london = ZoneInfo("Europe/London")
+    now = datetime.now(london).strftime("%Y-%m-%d %H:%M %Z")
+
+    items = []
+    for e in entries:
+        entry_title = escape(getattr(e, "title", "(no title)"))
+        entry_link = escape(getattr(e, "link", ""))
+        content_html = entry_content(e)
+        excerpt = escape(_first_words(_html_to_text(content_html)))
+        source_title = escape(e.get("_source_title", ""))
+        source_url = escape(e.get("_source_url", ""))
+        pub_date_str = entry_date(e).strftime("%d %B %Y")
+        items.append(
+            f"  <article>\n"
+            f"    <h2><a href=\"{entry_link}\">{entry_title}</a></h2>\n"
+            f"    <p><small>{pub_date_str} &mdash; from "
+            f"<a href=\"{source_url}\">{source_title}</a></small></p>\n"
+            f"    <p>{excerpt}</p>\n"
+            f"    <p><a href=\"{entry_link}\">Read full post &rarr;</a></p>\n"
+            f"  </article>"
+        )
+
+    body = "\n".join(items)
+    return (
+        "<!DOCTYPE html>\n"
+        "<html lang=\"en\">\n"
+        "<head>\n"
+        "  <meta charset=\"utf-8\">\n"
+        f"  <title>{escape(title)}</title>\n"
+        "</head>\n"
+        "<body>\n"
+        f"<h1>{escape(title)}</h1>\n"
+        f"<p>{escape(description)}</p>\n"
+        f'<p><a href="{feed_xml_path}">RSS feed</a></p>\n'
+        f"{body}\n"
+        f"<p>Last refreshed: {now}</p>\n"
+        "</body>\n"
+        "</html>\n"
+    )
+
+
 def build_index(feeds):
     links = "\n".join(
         f'    <li><a href="{fid}/">{escape(cfg["title"])}</a>'
@@ -146,6 +214,12 @@ def generate(config_path, output_dir):
         with open(out_path, "w", encoding="utf-8") as f:
             f.write(rss)
         print(f"  wrote {out_path} ({len(all_entries)} entries)")
+
+        feed_page = build_feed_page(title, description, all_entries, "index.xml")
+        page_path = os.path.join(feed_dir, "index.html")
+        with open(page_path, "w", encoding="utf-8") as f:
+            f.write(feed_page)
+        print(f"  wrote {page_path}")
 
     index_path = os.path.join(output_dir, "index.html")
     with open(index_path, "w", encoding="utf-8") as f:
