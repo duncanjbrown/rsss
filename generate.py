@@ -48,6 +48,8 @@ def build_rss(title, description, link, entries):
         item_guid = escape(getattr(e, "id", item_link))
         enclosures = entry_enclosures(e)
 
+        source_title = escape(e.get("_source_title", ""))
+        source_url = escape(e.get("_source_url", ""))
         item = (
             f"    <item>\n"
             f"      <title>{item_title}</title>\n"
@@ -55,6 +57,7 @@ def build_rss(title, description, link, entries):
             f"      <description><![CDATA[{item_desc}]]></description>\n"
             f"      <pubDate>{pub_date_str}</pubDate>\n"
             f"      <guid>{item_guid}</guid>\n"
+            f'      <source url="{source_url}">{source_title}</source>\n'
         )
         if enclosures:
             item += enclosures + "\n"
@@ -124,6 +127,10 @@ def generate(config_path, output_dir):
             parsed = feedparser.parse(url, resolve_relative_uris=False)
             if parsed.bozo and not parsed.entries:
                 print(f"  warning: failed to parse {url}: {parsed.bozo_exception}")
+            source_title = parsed.feed.get("title", url)
+            for entry in parsed.entries:
+                entry["_source_title"] = source_title
+                entry["_source_url"] = url
             all_entries.extend(parsed.entries)
 
         all_entries.sort(key=entry_date, reverse=True)
