@@ -5,6 +5,7 @@ import sys
 import os
 from datetime import datetime, timezone
 from email.utils import formatdate
+from zoneinfo import ZoneInfo
 from xml.sax.saxutils import escape
 
 
@@ -82,12 +83,16 @@ def build_index(feeds):
         f" — {escape(cfg.get('description', ''))}</li>"
         for fid, cfg in feeds.items()
     )
+    london = ZoneInfo("Europe/London")
+    now = datetime.now(london).strftime("%Y-%m-%d %H:%M %Z")
     return (
         "<!DOCTYPE html>\n<html>\n<head><meta charset=utf-8>"
         "<title>RSSs</title></head>\n<body>\n"
         "<h1>RSSs</h1>\n<ul>\n"
         f"{links}\n"
-        "</ul>\n</body>\n</html>\n"
+        "</ul>\n"
+        f"<p>Last refreshed: {now}</p>\n"
+        "</body>\n</html>\n"
     )
 
 
