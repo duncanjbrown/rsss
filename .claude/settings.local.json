@@ -4,7 +4,8 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(uv lock *)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(git push *)"
     ]
   }
 }

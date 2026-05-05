@@ -116,7 +116,7 @@ def generate(config_path, output_dir):
         all_entries = []
         for url in source_urls:
             print(f"  fetching {url}")
-            parsed = feedparser.parse(url)
+            parsed = feedparser.parse(url, resolve_relative_uris=False)
             if parsed.bozo and not parsed.entries:
                 print(f"  warning: failed to parse {url}: {parsed.bozo_exception}")
             all_entries.extend(parsed.entries)
