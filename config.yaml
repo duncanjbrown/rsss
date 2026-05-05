@@ -1,0 +1,7 @@
+dpsp-combined:
+  title: "DPSP"
+  description: "Combined DPSP feed"
+  feeds:
+    - https://design-history-referrals-app-e8b8c2c8ff86.herokuapp.com/feed.xml
+    - https://design-history.nhsapp.service.nhs.uk/feed.xml
+    - https://design-history.prevention-services.nhs.uk/feed.xml
