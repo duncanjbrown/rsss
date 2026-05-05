@@ -16,24 +16,49 @@ def entry_date(entry):
     return datetime.min.replace(tzinfo=timezone.utc)
 
 
+def entry_content(e):
+    # Prefer full content over summary so embedded images are included
+    content_list = getattr(e, "content", None)
+    if content_list:
+        return content_list[0].get("value", "")
+    return getattr(e, "summary", getattr(e, "description", ""))
+
+
+def entry_enclosures(e):
+    lines = []
+    for enc in getattr(e, "enclosures", []):
+        url = enc.get("url", "")
+        mime = enc.get("type", "")
+        length = enc.get("length", "0")
+        if url:
+            lines.append(
+                f'      <enclosure url="{escape(url)}" type="{escape(mime)}" length="{length}"/>'
+            )
+    return "\n".join(lines)
+
+
 def build_rss(title, description, link, entries):
     items = []
     for e in entries:
         pub_date_str = formatdate(entry_date(e).timestamp())
         item_title = escape(getattr(e, "title", "(no title)"))
         item_link = getattr(e, "link", "")
-        item_desc = getattr(e, "summary", getattr(e, "description", ""))
+        item_desc = entry_content(e)
         item_guid = escape(getattr(e, "id", item_link))
+        enclosures = entry_enclosures(e)
 
-        items.append(
+        item = (
             f"    <item>\n"
             f"      <title>{item_title}</title>\n"
             f"      <link>{escape(item_link)}</link>\n"
             f"      <description><![CDATA[{item_desc}]]></description>\n"
             f"      <pubDate>{pub_date_str}</pubDate>\n"
             f"      <guid>{item_guid}</guid>\n"
-            f"    </item>"
         )
+        if enclosures:
+            item += enclosures + "\n"
+        item += "    </item>"
+        items.append(item)
 
     now = formatdate()
     body = "\n".join(items)
@@ -59,8 +84,8 @@ def build_index(feeds):
     )
     return (
         "<!DOCTYPE html>\n<html>\n<head><meta charset=utf-8>"
-        "<title>RSS Feeds</title></head>\n<body>\n"
-        "<h1>RSS Feeds</h1>\n<ul>\n"
+        "<title>RSSs</title></head>\n<body>\n"
+        "<h1>RSSs</h1>\n<ul>\n"
         f"{links}\n"
         "</ul>\n</body>\n</html>\n"
     )
