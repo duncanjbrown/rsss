@@ -48,17 +48,18 @@ def build_rss(title, description, link, entries):
         item_guid = escape(getattr(e, "id", item_link))
         enclosures = entry_enclosures(e)
 
-        source_title = escape(e.get("_source_title", ""))
-        source_url = escape(e.get("_source_url", ""))
+        source_title = e.get("_source_title", "")
+        source_url = e.get("_source_url", "")
         author = e.get("author", "")
+        byline = f'<p><small>From <a href="{source_url}">{source_title}</a></small></p>'
         item = (
             f"    <item>\n"
             f"      <title>{item_title}</title>\n"
             f"      <link>{escape(item_link)}</link>\n"
-            f"      <description><![CDATA[{item_desc}]]></description>\n"
+            f"      <description><![CDATA[{byline}{item_desc}]]></description>\n"
             f"      <pubDate>{pub_date_str}</pubDate>\n"
             f"      <guid>{item_guid}</guid>\n"
-            f'      <source url="{source_url}">{source_title}</source>\n'
+            f'      <source url="{escape(source_url)}">{escape(source_title)}</source>\n'
         )
         if author:
             item += f"      <author><![CDATA[{author}]]></author>\n"
