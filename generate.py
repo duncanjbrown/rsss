@@ -51,7 +51,7 @@ def build_rss(title, description, link, entries):
         source_title = e.get("_source_title", "")
         source_url = e.get("_source_url", "")
         author = e.get("author", "")
-        byline = f'<p><small>From <a href="{source_url}">{source_title}</a></small></p>'
+        byline = f'<p><small><em>From <a href="{source_url}">{source_title}</a></em></small></p>'
         item = (
             f"    <item>\n"
             f"      <title>{item_title}</title>\n"
