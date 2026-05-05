@@ -50,6 +50,7 @@ def build_rss(title, description, link, entries):
 
         source_title = escape(e.get("_source_title", ""))
         source_url = escape(e.get("_source_url", ""))
+        author = e.get("author", "")
         item = (
             f"    <item>\n"
             f"      <title>{item_title}</title>\n"
@@ -59,6 +60,8 @@ def build_rss(title, description, link, entries):
             f"      <guid>{item_guid}</guid>\n"
             f'      <source url="{source_url}">{source_title}</source>\n'
         )
+        if author:
+            item += f"      <author><![CDATA[{author}]]></author>\n"
         if enclosures:
             item += enclosures + "\n"
         item += "    </item>"
