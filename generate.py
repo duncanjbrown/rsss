@@ -63,6 +63,15 @@ FEED_XSL = """\
           .content img { max-width: 100%; height: auto; display: block; margin: 0.5rem 0; }
           .content p:first-child { margin-top: 0; }
           .content p:last-child { margin-bottom: 0; }
+          .content h1, .content h2, .content h3,
+          .content h4, .content h5, .content h6 {
+            font-weight: 600;
+            margin: 0.75rem 0 0.25rem;
+          }
+          .content h1 { font-size: 1rem; }
+          .content h2 { font-size: 0.95rem; }
+          .content h3 { font-size: 0.9rem; }
+          .content h4, .content h5, .content h6 { font-size: 0.875rem; }
         </style>
       </head>
       <body>
